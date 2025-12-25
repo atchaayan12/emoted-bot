@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AGENT's EMOTE BOT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="nav-content">
+                <div class="nav-left">
+                    <h1 class="nav-title">
+                        <i class="fas fa-shield-alt"></i> Admin Panel
+                    </h1>
+                </div>
+                <div class="nav-right">
+                    <a href="/" class="nav-link-btn" title="Go to Main Page">
+                        <i class="fas fa-home"></i>
+                    </a>
+                    <a href="/auth/logout" class="nav-link-btn" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Container -->
+        <div class="admin-container">
+            <!-- User Management Section -->
+            <div class="admin-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> User Management</h2>
+                    <button class="btn-primary" id="add-user-btn">
+                        <i class="fas fa-plus"></i> Add New User
+                    </button>
+                </div>
+
+                <!-- Add/Edit User Form -->
+                <div class="form-card" id="user-form-card" style="display: none;">
+                    <div class="form-header">
+                        <h3 id="form-title">Add New User</h3>
+                        <button class="close-btn" id="close-form-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <form id="user-form" class="admin-form">
+                        <input type="hidden" id="edit-username" value="">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-username">
+                                    <i class="fas fa-user"></i> Username *
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="new-username" 
+                                    class="form-input" 
+                                    placeholder="Enter username"
+                                    required
+                                    pattern="[a-zA-Z0-9_]{3,20}"
+                                    title="3-20 characters, letters, numbers, and underscore only"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="new-password">
+                                    <i class="fas fa-lock"></i> Password *
+                                </label>
+                                <input 
+                                    type="password" 
+                                    id="new-password" 
+                                    class="form-input" 
+                                    placeholder="Enter password"
+                                    required
+                                    minlength="6"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="expiry-days">
+                                    <i class="fas fa-calendar-alt"></i> Expiry Days *
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="expiry-days" 
+                                    class="form-input" 
+                                    placeholder="Days until expiry"
+                                    required
+                                    min="1"
+                                    max="365"
+                                    value="30"
+                                >
+                                <small class="form-help">User will expire after this many days</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="user-status">
+                                    <i class="fas fa-toggle-on"></i> Status
+                                </label>
+                                <select id="user-status" class="form-input">
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="form-error" class="error-message" style="display: none;"></div>
+                        <div id="form-success" class="success-message" style="display: none;"></div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" id="cancel-btn">Cancel</button>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> Save User
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Users Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="table-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="search-users" placeholder="Search users...">
+                        </div>
+                        <div class="table-info">
+                            <span id="user-count">0</span> users
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Created</th>
+                                    <th>Expires</th>
+                                    <th>Status</th>
+                                    <th>Days Left</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let usersData = [];
+
+        // Load users on page load
+        async function loadUsers() {
+            try {
+                const response = await fetch('/admin/users');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    usersData = data.users || [];
+                    renderUsers(usersData);
+                    updateUserCount();
+                } else {
+                    showError('Failed to load users: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showError('Connection error. Please refresh the page.');
+            }
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No users found</td></tr>';
+                return;
+            }
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const isExpired = user.days_left <= 0;
+                const statusClass = user.status === 'active' && !isExpired ? 'status-active' : 'status-inactive';
+                const statusText = isExpired ? 'Expired' : (user.status === 'active' ? 'Active' : 'Inactive');
+                
+                row.innerHTML = `
+                    <td><strong>${escapeHtml(user.username)}</strong></td>
+                    <td>${formatDate(user.created_at)}</td>
+                    <td>${formatDate(user.expires_at)}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <span class="${isExpired ? 'text-danger' : user.days_left <= 7 ? 'text-warning' : ''}">
+                            ${user.days_left} days
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-edit" onclick="editUser('${escapeHtml(user.username)}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon btn-delete" onclick="deleteUser('${escapeHtml(user.username)}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateUserCount() {
+            document.getElementById('user-count').textContent = usersData.length;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('form-error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('form-success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Add User Button
+        document.getElementById('add-user-btn').addEventListener('click', function() {
+            document.getElementById('user-form-card').style.display = 'block';
+            document.getElementById('form-title').textContent = 'Add New User';
+            document.getElementById('user-form').reset();
+            document.getElementById('edit-username').value = '';
+            document.getElementById('new-username').disabled = false;
+        });
+
+        // Close Form
+        document.getElementById('close-form-btn').addEventListener('click', closeForm);
+        document.getElementById('cancel-btn').addEventListener('click', closeForm);
+
+        function closeForm() {
+            document.getElementById('user-form-card').style.display = 'none';
+            document.getElementById('user-form').reset();
+            document.getElementById('form-error').style.display = 'none';
+            document.getElementById('form-success').style.display = 'none';
+        }
+
+        // Edit User
+        function editUser(username) {
+            const user = usersData.find(u => u.username === username);
+            if (!user) return;
+
+            document.getElementById('user-form-card').style.display = 'block';
+            document.getElementById('form-title').textContent = 'Edit User';
+            document.getElementById('edit-username').value = username;
+            document.getElementById('new-username').value = user.username;
+            document.getElementById('new-username').disabled = true;
+            document.getElementById('new-password').value = '';
+            document.getElementById('new-password').required = false;
+            document.getElementById('new-password').placeholder = 'Leave blank to keep current password';
+            
+            // Calculate days from expiry date
+            const expiresAt = new Date(user.expires_at);
+            const now = new Date();
+            const daysLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));
+            document.getElementById('expiry-days').value = Math.max(1, daysLeft);
+            document.getElementById('user-status').value = user.status;
+        }
+
+        // Delete User
+        async function deleteUser(username) {
+            if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/users/${username}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    showSuccess('User deleted successfully');
+                    loadUsers();
+                } else {
+                    showError(data.message || 'Failed to delete user');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showError('Connection error. Please try again.');
+            }
+        }
+
+        // Submit Form
+        document.getElementById('user-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const editUsername = document.getElementById('edit-username').value;
+            const username = document.getElementById('new-username').value.trim();
+            const password = document.getElementById('new-password').value;
+            const expiryDays = parseInt(document.getElementById('expiry-days').value);
+            const status = document.getElementById('user-status').value;
+
+            const isEdit = editUsername !== '';
+            const url = isEdit ? `/admin/users/${editUsername}` : '/admin/users';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            const payload = {
+                username: username,
+                expiry_days: expiryDays,
+                status: status
+            };
+
+            if (password) {
+                payload.password = password;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    showSuccess(isEdit ? 'User updated successfully' : 'User created successfully');
+                    closeForm();
+                    loadUsers();
+                } else {
+                    showError(data.message || 'Operation failed');
+                }
+            } catch (error) {
+                console.error('Form error:', error);
+                showError('Connection error. Please try again.');
+            }
+        });
+
+        // Search functionality
+        document.getElementById('search-users').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = usersData.filter(user => 
+                user.username.toLowerCase().includes(searchTerm)
+            );
+            renderUsers(filtered);
+        });
+
+        // Load users on page load
+        loadUsers();
+    </script>
+</body>
+</html>
+

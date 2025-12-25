@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENT's EMOTE SEVER | Free Fire Emote Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #f59e0b;
+            --dark: #0f172a;
+            --darker: #020617;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, #1e293b 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .floating-shape {
+            position: absolute;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape-1 {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .shape-3 {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 15%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* Main App Wrapper */
+        .app-wrapper {
+            min-height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+
+        /* Navigation */
+        .top-nav {
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-container {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .logo-container img {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+            to { box-shadow: 0 0 30px rgba(236, 72, 153, 0.4); }
+        }
+
+        .nav-title-group h1 {
+            background: linear-gradient(135deg, var(--light), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .nav-subtitle {
+            color: var(--gray);
+            font-size: 0.8rem;
+            font-weight: 300;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .user-info i {
+            color: var(--primary);
+        }
+
+        .username-display {
+            color: var(--light);
+            font-weight: 500;
+        }
+
+        .nav-link-btn-new {
+            width: 40px;
+            height: 40px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link-btn-new:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Main Layout */
+        .main-wrapper {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            background: rgba(2, 6, 23, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .panel-header-new {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .panel-icon-wrapper {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .panel-header-new h2 {
+            color: var(--light);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .setting-block {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .setting-block:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .setting-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--light);
+            font-weight: 500;
+        }
+
+        .setting-header i {
+            color: var(--primary);
+        }
+
+        .server-team-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .setting-input {
+            width: 100%;
+            background: rgba(2, 6, 23, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            color: var(--light);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .setting-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1rem;
+        }
+
+        .uid-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .uid-item label {
+            display: block;
+            color: var(--gray);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Command Buttons */
+        .command-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .command-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .command-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .command-btn.macro-btn {
+            background: linear-gradient(135deg, var(--accent), #eab308);
+        }
+
+        .command-btn.macro-btn:hover {
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Right Panel */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Emotes Section */
+        .emotes-container {
+            background: rgba(2, 6, 23, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .section-header-new {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-title-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-icon-wrapper {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .section-title-group h2 {
+            color: var(--light);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .section-description {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .count-badge-new {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            color: var(--primary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Category Filters */
+        .category-filters {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+            color: var(--gray);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .category-btn:hover {
+            border-color: var(--primary);
+            color: var(--light);
+            transform: translateY(-1px);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .category-count {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+        }
+
+        /* Emotes Grid */
+        .emotes-grid-modern {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .emote-tile {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .emote-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .emote-tile:hover::before {
+            left: 100%;
+        }
+
+        .emote-tile:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .tile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .emote-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            background: rgba(2, 6, 23, 0.8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .emote-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .tile-body h4 {
+            color: var(--light);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .emote-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .meta-tag {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 15px;
+            padding: 0.25rem 0.75rem;
+            color: var(--primary);
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        /* Status Dashboard */
+        .dashboard-card {
+            background: rgba(2, 6, 23, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .card-header-modern-new {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-left-new {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-icon-wrapper {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--success), #34d399);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .header-left-new h3 {
+            color: var(--light);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .status-subtitle {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .status-indicator-new {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+        }
+
+        .status-dot-new {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            color: var(--success);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-display-new {
+            background: rgba(2, 6, 23, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            min-height: 120px;
+        }
+
+        .status-content-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .status-icon-large {
+            width: 40px;
+            height: 40px;
+            background: var(--success);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .status-message-wrapper {
+            flex: 1;
+        }
+
+        .status-output-new {
+            color: var(--light);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-timestamp {
+            color: var(--gray);
+            font-size: 0.7rem;
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Loading States */
+        .loading, .error {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+            font-style: italic;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .loading::after {
+            content: '';
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-wrapper {
+                grid-template-columns: 1fr;
+            }
+            
+            .left-panel {
+                position: static;
+            }
+            
+            .emotes-grid-modern {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .server-team-row,
+            .uid-row,
+            .command-buttons-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .emotes-grid-modern {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body class="logged-in-body">
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+    </div>
+
+    <div class="app-wrapper logged-in-wrapper fade-in">
+        <!-- Top Navigation Bar -->
+        <nav class="top-nav logged-in-nav slide-up">
+            <div class="nav-content">
+                <div class="nav-left">
+                    <div class="logo-container">
+                        <!-- Replace with your logo -->
+                        <img src="/static/images/your-logo.png" alt="AGENT's Logo" onerror="this.style.display='none'">
+                        <!-- Fallback icon if logo not found -->
+                        <i class="fas fa-fire" style="color: white; font-size: 1.2rem;"></i>
+                    </div>
+                    <div class="nav-title-group">
+                        <h1>AGENT's EMOTE SEVER</h1>
+                        <span class="nav-subtitle">Premium Emote Control Center</span>
+                    </div>
+                </div>
+                <div class="nav-right">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="username-display">{{ session.get('username', 'User') }}</span>
+                    </div>
+                    <a href="https://discord.gg/CeXcqkvb9d" target="_blank" class="nav-link-btn-new" title="Discord">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="#" class="nav-link-btn-new" title="Telegram">
+                        <i class="fab fa-telegram"></i>
+                    </a>
+                    <a href="https://youtube.com/@agent_panel?si=4mCaBqvkPJ-qeXN1" target="_blank" class="nav-link-btn-new" title="YouTube">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                    {% if session.get('admin') %}
+                    <a href="/admin" class="nav-link-btn-new admin-btn" title="Admin Panel">
+                        <i class="fas fa-shield-alt"></i>
+                    </a>
+                    {% endif %}
+                    <a href="/auth/logout" class="nav-link-btn-new logout-btn" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Container -->
+        <div class="main-wrapper">
+            <!-- Left Panel - Configuration -->
+            <aside class="left-panel logged-in-panel slide-up">
+                <div class="panel-header-new">
+                    <div class="panel-icon-wrapper">
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                    <h2>Control Panel</h2>
+                </div>
+                
+                <div class="panel-content">
+                    <!-- Server and Team Code -->
+                    <div class="setting-block">
+                        <div class="server-team-row">
+                            <div class="server-item">
+                                <div class="setting-header">
+                                    <i class="fas fa-globe"></i>
+                                    <span>Server</span>
+                                </div>
+                                <select id="server" class="setting-input setting-select">
+                                    <option value="india">India</option>
+                                    <option value="bangladesh" selected>Bangladesh</option>
+                                </select>
+                            </div>
+                            <div class="team-item">
+                                <div class="setting-header">
+                                    <i class="fas fa-key"></i>
+                                    <span>Team Code</span>
+                                </div>
+                                <input type="text" id="team-code" class="setting-input" placeholder="Enter team code">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UIDs -->
+                    <div class="setting-block">
+                        <div class="setting-header">
+                            <i class="fas fa-users"></i>
+                            <span>Players</span>
+                        </div>
+                        <div class="uid-row">
+                            <div class="uid-item">
+                                <label>UID 1</label>
+                                <input type="text" class="setting-input" id="uid1" placeholder="Required">
+                            </div>
+                            <div class="uid-item">
+                                <label>UID 2</label>
+                                <input type="text" class="setting-input" id="uid2" placeholder="Optional">
+                            </div>
+                            <div class="uid-item">
+                                <label>UID 3</label>
+                                <input type="text" class="setting-input" id="uid3" placeholder="Optional">
+                            </div>
+                            <div class="uid-item">
+                                <label>UID 4</label>
+                                <input type="text" class="setting-input" id="uid4" placeholder="Optional">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bot Commands Section -->
+                    <div class="setting-block">
+                        <div class="setting-header">
+                            <i class="fas fa-terminal"></i>
+                            <span>Bot Commands</span>
+                        </div>
+
+                        <!-- Macro Button -->
+                        <div class="command-item" style="margin-bottom: 12px;">
+                            <button class="command-btn macro-btn" id="macro-toggle-btn" style="width: 100%;">
+                                <i class="fas fa-circle" id="macro-icon"></i>
+                                <span id="macro-text">Start Macro</span>
+                            </button>
+                        </div>
+
+                        <!-- Command Buttons -->
+                        <div class="command-buttons-grid">
+                            <button class="command-btn" data-command="lag">
+                                <i class="fas fa-bomb"></i>
+                                <span>Lag</span>
+                            </button>
+                            <button class="command-btn" data-command="attack">
+                                <i class="fas fa-fist-raised"></i>
+                                <span>Attack</span>
+                            </button>
+                            <button class="command-btn" data-command="start">
+                                <i class="fas fa-play-circle"></i>
+                                <span>Start</span>
+                            </button>
+                            <button class="command-btn" data-command="solo">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Solo</span>
+                            </button>
+                        </div>
+
+                        <!-- Lag Duration Input -->
+                        <div class="command-item" style="margin-top: 12px; display: none;" id="lag-duration-container">
+                            <label style="font-size: 11px; color: #718096; margin-bottom: 4px; display: block;">Duration (seconds)</label>
+                            <input type="number" class="setting-input" id="lag-duration" value="10" min="2" max="60" placeholder="10">
+                        </div>
+
+                        <!-- Start Count Input -->
+                        <div class="command-item" style="margin-top: 12px; display: none;" id="start-count-container">
+                            <label style="font-size: 11px; color: #718096; margin-bottom: 4px; display: block;">Spam Count</label>
+                            <input type="number" class="setting-input" id="start-count" value="20" min="1" max="50" placeholder="20">
+                        </div>
+
+                        <!-- AI Chat Section -->
+                        <div class="setting-block" style="margin-top: 20px;">
+                            <div class="setting-header">
+                                <i class="fas fa-robot"></i>
+                                <span>AI Chat</span>
+                            </div>
+                            <div class="command-item">
+                                <input type="text" class="setting-input" id="ai-question" placeholder="Ask AI a question...">
+                                <button class="command-btn" data-command="ai" style="width: 100%; margin-top: 8px;">
+                                    <i class="fas fa-comments"></i>
+                                    <span>Ask AI</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Panel - Content Area -->
+            <main class="right-panel">
+                <!-- Emotes Section -->
+                <div class="emotes-container logged-in-emotes slide-up">
+                    <div class="section-header-new">
+                        <div class="section-title-group">
+                            <div class="section-icon-wrapper">
+                                <i class="fas fa-smile-wink"></i>
+                            </div>
+                            <div>
+                                <h2>Emote Library</h2>
+                                <p class="section-description">Select and send emotes instantly</p>
+                            </div>
+                        </div>
+                        <div class="count-badge-new">
+                            <i class="fas fa-layer-group"></i>
+                            <span id="total-emotes-count">Loading...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Filters -->
+                    <div class="category-filters">
+                        <button class="category-btn active" data-category="all">
+                            All Emotes <span class="category-count" id="count-all">0</span>
+                        </button>
+                        <button class="category-btn" data-category="rare">
+                            Rare Emotes <span class="category-count" id="count-rare">0</span>
+                        </button>
+                        <button class="category-btn" data-category="evo">
+                            Evo Emotes <span class="category-count" id="count-evo">0</span>
+                        </button>
+                        <button class="category-btn" data-category="exclusive">
+                            Exclusive <span class="category-count" id="count-exclusive">0</span>
+                        </button>
+                        <button class="category-btn" data-category="seasonal">
+                            Seasonal <span class="category-count" id="count-seasonal">0</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Emotes Container (will be filled by JavaScript) -->
+                    <div id="emotes-container">
+                        <div class="loading">Loading emotes...</div>
+                    </div>
+                </div>
+
+                <!-- Status Dashboard -->
+                <div class="dashboard-card logged-in-dashboard slide-up">
+                    <div class="card-header-modern-new">
+                        <div class="header-left-new">
+                            <div class="status-icon-wrapper">
+                                <i class="fas fa-terminal"></i>
+                            </div>
+                            <div>
+                                <h3>System Status</h3>
+                                <p class="status-subtitle">Real-time operation feedback</p>
+                            </div>
+                        </div>
+                        <div class="status-indicator-new" id="status-indicator">
+                            <span class="status-dot-new"></span>
+                            <span class="status-text">Online</span>
+                        </div>
+                    </div>
+                    <div class="card-body-modern-new">
+                        <div class="status-display-new" id="status-display">
+                            <div class="status-content-wrapper">
+                                <div class="status-icon-large" id="status-icon-large">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="status-message-wrapper">
+                                    <pre id="result-box" class="status-output-new">System ready. Configure settings and select an emote to send.</pre>
+                                    <div class="status-timestamp" id="status-timestamp"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Emote categories configuration
+        const emoteCategories = {
+            'rare': { 
+                name: 'Rare Emotes', 
+                file: 'emotes_rare.json', 
+                icon: 'fas fa-gem', 
+                color: '#FFD700' 
+            },
+            'evo': { 
+                name: 'Evo Emotes', 
+                file: 'emotes_evo.json', 
+                icon: 'fas fa-level-up-alt', 
+                color: '#9B59B6' 
+            },
+            'exclusive': { 
+                name: 'Exclusive Emotes', 
+                file: 'emotes_exclusive.json', 
+                icon: 'fas fa-crown', 
+                color: '#E74C3C' 
+            },
+            'seasonal': { 
+                name: 'Seasonal Emotes', 
+                file: 'emotes_seasonal.json', 
+                icon: 'fas fa-snowflake', 
+                color: '#2ECC71' 
+            }
+        };
+
+        let allEmotes = {};
+
+        // Load all emote categories
+        async function loadAllEmotes() {
+            const container = document.getElementById('emotes-container');
+            container.innerHTML = '<div class="loading">Loading emotes...</div>';
+
+            try {
+                // Load each category
+                for (const [category, config] of Object.entries(emoteCategories)) {
+                    const response = await fetch(`/static/emotes/${config.file}`);
+                    if (response.ok) {
+                        allEmotes[category] = await response.json();
+                    } else {
+                        allEmotes[category] = [];
+                        console.warn(`Could not load ${config.file}`);
+                    }
+                }
+
+                renderAllEmotes();
+                setupCategoryFiltering();
+                updateCategoryCounts();
+                
+            } catch (error) {
+                console.error('Error loading emotes:', error);
+                container.innerHTML = '<div class="error">Error loading emotes. Please refresh the page.</div>';
+            }
+        }
+
+        // Render all emotes in sections
+        function renderAllEmotes() {
+            const container = document.getElementById('emotes-container');
+            let html = '';
+
+            // Render each category section
+            for (const [category, config] of Object.entries(emoteCategories)) {
+                const emotes = allEmotes[category];
+                if (emotes && emotes.length > 0) {
+                    html += `
+                        <div class="emote-section" data-category="${category}">
+                            <h3 class="section-title" style="border-left-color: ${config.color}">
+                                <i class="${config.icon}" style="color: ${config.color}"></i>
+                                ${config.name}
+                            </h3>
+                            <div class="emotes-grid-modern">
+                                ${emotes.map(emote => `
+                                    <div class="emote-tile" data-categories="${category}">
+                                        <div class="tile-header">
+                                            <div class="emote-icon-wrapper">
+                                                <img src="/static/images/${emote.image}" alt="${emote.name}" class="emote-icon" onerror="this.src='/static/images/default.png'">
+                                            </div>
+                                            <button class="action-btn" data-emote-id="${emote.id}">
+                                                <i class="fas fa-paper-plane"></i>
+                                                <span>Send</span>
+                                            </button>
+                                        </div>
+                                        <div class="tile-body">
+                                            <h4 class="emote-label">${emote.name}</h4>
+                                            <div class="emote-meta">
+                                                <span class="meta-tag">
+                                                    <i class="fas fa-hashtag"></i>
+                                                    ${emote.id}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            container.innerHTML = html;
+            attachEmoteEventListeners();
+        }
+
+        // Setup category filtering
+        function setupCategoryFiltering() {
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            const emoteSections = document.querySelectorAll('.emote-section');
+            
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    
+                    // Update active button
+                    categoryButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show/hide sections
+                    emoteSections.forEach(section => {
+                        if (category === 'all') {
+                            section.style.display = 'block';
+                        } else {
+                            section.style.display = section.getAttribute('data-category') === category ? 'block' : 'none';
+                        }
+                    });
+                    
+                    // Update total count
+                    updateTotalCount(category);
+                });
+            });
+        }
+
+        // Update category counts
+        function updateCategoryCounts() {
+            let totalCount = 0;
+            
+            for (const [category, emotes] of Object.entries(allEmotes)) {
+                const count = emotes ? emotes.length : 0;
+                const countElement = document.getElementById(`count-${category}`);
+                if (countElement) {
+                    countElement.textContent = count;
+                }
+                totalCount += count;
+            }
+            
+            document.getElementById('count-all').textContent = totalCount;
+            document.getElementById('total-emotes-count').textContent = `${totalCount} Emotes`;
+        }
+
+        // Update total count based on filter
+        function updateTotalCount(category) {
+            let count = 0;
+            
+            if (category === 'all') {
+                for (const emotes of Object.values(allEmotes)) {
+                    count += emotes ? emotes.length : 0;
+                }
+            } else {
+                count = allEmotes[category] ? allEmotes[category].length : 0;
+            }
+            
+            document.getElementById('total-emotes-count').textContent = `${count} Emotes`;
+        }
+
+        // Attach event listeners to emote buttons
+        function attachEmoteEventListeners() {
+            document.querySelectorAll('.action-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const emoteId = this.getAttribute('data-emote-id');
+                    // Your existing send emote logic will work automatically
+                    // The click event is already handled by your existing code
+                });
+            });
+        }
+
+        // Your existing JavaScript functions
+function showStatus(message, type) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString();
+    
+    const resultBox = document.getElementById('result-box');
+    const statusIndicator = document.getElementById('status-indicator');
+    const statusIconLarge = document.getElementById('status-icon-large');
+    const statusTimestamp = document.getElementById('status-timestamp');
+    const statusDisplay = document.getElementById('status-display');
+    
+    resultBox.textContent = message;
+    resultBox.className = 'status-output-new ' + type + '-state';
+    statusTimestamp.textContent = timeStr;
+    statusTimestamp.className = 'status-timestamp ' + type + '-state';
+    
+    // Update status indicator
+    statusIndicator.innerHTML = '<span class="status-dot-new ' + type + '"></span><span class="status-text">' + (type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Processing') + '</span>';
+    
+    // Update large icon
+    let iconClass = 'fas fa-check-circle';
+    if (type === 'error') {
+        iconClass = 'fas fa-exclamation-circle';
+    } else if (type === 'processing') {
+        iconClass = 'fas fa-spinner fa-spin';
+    } else if (type === 'success') {
+        iconClass = 'fas fa-check-circle';
+    }
+    statusIconLarge.innerHTML = '<i class="' + iconClass + '"></i>';
+    statusIconLarge.className = 'status-icon-large ' + type + '-state';
+    
+    // Add pulse animation
+    statusDisplay.classList.add('status-pulse');
+    setTimeout(() => {
+        statusDisplay.classList.remove('status-pulse');
+    }, 500);
+    
+    // Only scroll for error messages (optional)
+    if (type === 'error') {
+        statusDisplay.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    setTimeout(() => {
+        if (type !== 'processing') {
+            statusIndicator.innerHTML = '<span class="status-dot-new"></span><span class="status-text">Online</span>';
+        }
+    }, 5000);
+}
+
+        // Helper function to call API
+        function callCommandAPI(endpoint, payload, button) {
+            showStatus('⏳ Processing request...', 'processing');
+            button.disabled = true;
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Processing...</span>';
+            
+            const restoreButton = function() {
+                button.disabled = false;
+                button.innerHTML = originalHTML;
+            };
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showStatus('✅ ' + data.message, 'success');
+                } else {
+                    showStatus('❌ ' + (data.message || 'Request failed'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+                showStatus('❌ Connection error. Please try again.', 'error');
+            })
+            .finally(() => {
+                restoreButton();
+            });
+        }
+
+        // Macro functionality
+        let macroInterval = null;
+        let isMacroRunning = false;
+        let currentEmoteData = null;
+
+        const macroToggleBtn = document.getElementById('macro-toggle-btn');
+        const macroIcon = document.getElementById('macro-icon');
+        const macroText = document.getElementById('macro-text');
+
+        function startMacro() {
+            const server = document.getElementById('server').value.toLowerCase();
+            const teamCode = document.getElementById('team-code').value.trim();
+            const uidInputs = document.querySelectorAll('.setting-input[id^="uid"]');
+            const uids = [];
+            uidInputs.forEach(input => {
+                const uidValue = input.value.trim();
+                if (uidValue) {
+                    uids.push(uidValue);
+                }
+            });
+
+            if (!server || !teamCode || uids.length === 0) {
+                showStatus('❌ Error: Please set Server, Team Code, UIDs, and select an emote first.', 'error');
+                return;
+            }
+
+            // Get last clicked emote
+            const lastEmoteId = sessionStorage.getItem('lastEmoteId');
+            if (!lastEmoteId) {
+                showStatus('❌ Error: Please select an emote first by clicking on any emote.', 'error');
+                return;
+            }
+
+            currentEmoteData = {
+                server: server,
+                team_code: teamCode,
+                emote_id: lastEmoteId,
+                uids: uids
+            };
+
+            isMacroRunning = true;
+            macroToggleBtn.style.background = 'linear-gradient(135deg, #f56565, #e53e3e)';
+            macroIcon.className = 'fas fa-stop';
+            macroText.textContent = 'Stop Macro';
+            showStatus('✅ Macro Started - Sending emote every 100ms...', 'success');
+
+            // Send immediately
+            sendEmoteMacro();
+
+            // Then send every 100 milliseconds
+            macroInterval = setInterval(() => {
+                if (isMacroRunning) {
+                    sendEmoteMacro();
+                }
+            }, 100);
+        }
+
+        function stopMacro() {
+            isMacroRunning = false;
+            if (macroInterval) {
+                clearInterval(macroInterval);
+                macroInterval = null;
+            }
+            macroToggleBtn.style.background = 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))';
+            macroIcon.className = 'fas fa-circle';
+            macroText.textContent = 'Start Macro';
+            showStatus('⏹ Macro Stopped', 'error');
+        }
+
+        function sendEmoteMacro() {
+            if (!currentEmoteData) return;
+
+            fetch('/send_emote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(currentEmoteData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Don't show status for each macro send to avoid spam
+                } else {
+                    console.error('Macro Error:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Macro Connection Error:', error);
+            });
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load emotes when page loads
+            loadAllEmotes();
+
+            // Macro button
+            macroToggleBtn.addEventListener('click', function() {
+                if (isMacroRunning) {
+                    stopMacro();
+                } else {
+                    startMacro();
+                }
+            });
+
+            // Command buttons handler
+            document.querySelectorAll('.command-btn[data-command]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const command = this.getAttribute('data-command');
+                    const server = document.getElementById('server').value.toLowerCase();
+                    const teamCode = document.getElementById('team-code').value.trim();
+                    
+                    if (!server) {
+                        showStatus('❌ Error: Please select a server region.', 'error');
+                        return;
+                    }
+
+                    if (command === 'ai') {
+                        const question = document.getElementById('ai-question').value.trim();
+                        if (!question) {
+                            showStatus('❌ Error: Please enter a question.', 'error');
+                            return;
+                        }
+                        callCommandAPI('/ai', { question: question }, this);
+                    } else if (command === 'solo') {
+                        // Solo doesn't need team code
+                        callCommandAPI('/solo', { server: server, team_code: teamCode || '' }, this);
+                    } else {
+                        // Other commands need team code
+                        if (!teamCode) {
+                            showStatus('❌ Error: Please enter a team code.', 'error');
+                            return;
+                        }
+
+                        let payload = { server: server, team_code: teamCode };
+
+                        if (command === 'lag') {
+                            const duration = parseInt(document.getElementById('lag-duration').value) || 10;
+                            payload.duration = duration;
+                            callCommandAPI('/lag', payload, this);
+                        } else if (command === 'start') {
+                            const count = parseInt(document.getElementById('start-count').value) || 20;
+                            payload.count = count;
+                            callCommandAPI('/start', payload, this);
+                        } else if (command === 'attack') {
+                            callCommandAPI('/attack', payload, this);
+                        }
+                    }
+                });
+            });
+
+            // Show/hide duration/count inputs based on selected command
+            document.querySelectorAll('.command-btn[data-command]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const command = this.getAttribute('data-command');
+                    document.getElementById('lag-duration-container').style.display = command === 'lag' ? 'block' : 'none';
+                    document.getElementById('start-count-container').style.display = command === 'start' ? 'block' : 'none';
+                });
+            });
+
+            // Emote click handler (for both old and new emote tiles)
+            document.addEventListener('click', function(event) {
+                const sendButton = event.target.closest('.action-btn');
+                if (!sendButton) return;
+                
+                const server = document.getElementById('server').value.toLowerCase();
+                const teamCode = document.getElementById('team-code').value.trim();
+                const emoteId = sendButton.getAttribute('data-emote-id');
+                
+                const uidInputs = document.querySelectorAll('.setting-input[id^="uid"]');
+                const uids = [];
+                uidInputs.forEach(input => {
+                    const uidValue = input.value.trim();
+                    if (uidValue) {
+                        uids.push(uidValue);
+                    }
+                });
+
+                if (!server) {
+                    showStatus('❌ Error: Please select a server region.', 'error');
+                    return;
+                }
+                if (!teamCode) {
+                    showStatus('❌ Error: Please enter a team code.', 'error');
+                    return;
+                }
+                if (uids.length === 0) {
+                    showStatus('❌ Error: Please enter at least one UID.', 'error');
+                    return;
+                }
+                
+                showStatus('⏳ Sending emote...', 'processing');
+                
+                sendButton.disabled = true;
+                sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Sending...</span>';
+
+                // Store emote ID for macro
+                sessionStorage.setItem('lastEmoteId', emoteId);
+
+                const payload = {
+                    server: server,
+                    team_code: teamCode,
+                    emote_id: emoteId,
+                    uids: uids
+                };
+                
+                fetch('/send_emote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showStatus('✅ ' + data.message, 'success');
+                    } else {
+                        showStatus('❌ ' + (data.message || 'Request failed'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch Error:', error);
+                    showStatus('❌ Connection error. Please try again.', 'error');
+                })
+                .finally(() => {
+                    sendButton.disabled = false;
+                    sendButton.innerHTML = '<i class="fas fa-paper-plane"></i><span>Send</span>';
+                });
+            });
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', function() {
+                if (isMacroRunning) {
+                    stopMacro();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
