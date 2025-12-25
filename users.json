@@ -1,0 +1,43 @@
+{
+  "MADDY": {
+    "password": "scrypt:32768:8:1$AEUARKlLjnjJG5hI$f304c7cbc9389af90fa05964c878410efac6b9a843a1e65d11eb4aea67aeab4ca28dc5714381723ee2ae40cdb7deb8d4c16e66c1a51c2e6f1025aee891556509",
+    "created_at": "2025-11-14T16:54:01.413262",
+    "expires_at": "2025-12-21T16:54:01.413262",
+    "status": "active"
+  },
+  "user_6d0000882fe067b3": {
+    "password": "scrypt:32768:8:1$KtJkQre1oSX2wnXj$cba19997ae424ac3229001a0e901d6e5a489710b97441253839561297ec201a09b86eebe7d7ae8868f1cd3686f4f1f66a2b8db9acb838f24e45e9260fad2896f",
+    "created_at": "2025-11-17T23:42:49.386639",
+    "expires_at": "2025-11-18T11:42:49.270220",
+    "status": "active",
+    "discord_user_id": "1266872690208411742",
+    "discord_username": "agentgaming_100k"
+  },
+  "user_7d8afe98709446d9": {
+    "password": "scrypt:32768:8:1$FiuDq31UzG40fM47$01f7c9f3e44bb04ca1b6d02ccaf72b858f86bddb00735199b5a202a5ddbeb636b96d5e3af5b3e8e5b91a0d5e846ac3b4f1c1ba13c704707205e34790fd74ce3d",
+    "created_at": "2025-11-17T23:56:47.387647",
+    "expires_at": "2025-11-18T11:56:47.294877",
+    "status": "active",
+    "discord_user_id": "1373528188403060737",
+    "discord_username": "agents_panel",
+    "one_time_used": true
+  },
+  "user_3984fb6cfff7103e": {
+    "password": "scrypt:32768:8:1$kwGkckJdxCMA4KNy$27cc51cd3da9017d0309710c455e9968e7000c482044b1096581ebd7fe265306dc34cb816b3dda01d3fd3126b8b1138648aca15da9629cee353d326b75a9c0d8",
+    "created_at": "2025-11-19T13:30:27.904508",
+    "expires_at": "2025-11-20T01:30:27.767000",
+    "status": "active",
+    "discord_user_id": "1383451589012099133",
+    "discord_username": "majamohan14",
+    "one_time_used": true
+  },
+  "user_9461da057a07f4da": {
+    "password": "scrypt:32768:8:1$55LeQOXvJ6YKKS5X$7eca7021d1c25df4c405c4ea7c0208773feb3ef4d80721ffba3a97f600763682e4b1afc93584e76cb11e29d1adbd1c895772d2b897a8d4cfbdb59a0af6465e5c",
+    "created_at": "2025-11-19T18:45:28.730171",
+    "expires_at": "2025-11-20T06:45:28.575501",
+    "status": "active",
+    "discord_user_id": "1034162951877312644",
+    "discord_username": "tufmax12",
+    "one_time_used": true
+  }
+}
